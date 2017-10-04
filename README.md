@@ -11,7 +11,7 @@ application // 示例Demo
 </pre>
 
 ## 配置  
-把wechat目录放在Thinkphp5的extends目录下  
+把wechat目录放在Thinkphp5的extend目录下  
 先在application应用目录下的config.php里添加如下代码
 <pre>
 // 微信公众号
