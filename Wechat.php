@@ -3,14 +3,24 @@ namespace Wechat;
 class Wechat{
     
     private $config = [];
-    
     private $errorMsg = 'Nothing';
     
+    /**
+     * 构造方法,初始化微信公众号配置.
+     */
     public function __construct(){
         $this->config['appid']=config('wechat.appid');
         $this->config['appsecret']=config('wechat.appsecret');
     }
     
+    /**
+     * CURL
+     * @param  string  $url      目标地址
+     * @param  array $postData POST数据,若填写则为POST方式请求
+     * @param  boolean $json     是否以POST形式发送Json数据
+     * @param  array   $header   头部信息
+     * @return string            返回结果
+     */
     protected function http($url,$postData=false,$json=false,$header=[]){
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -43,10 +53,20 @@ class Wechat{
         return $output;
     }
     
+    /**
+     * 微信公众号解密
+     * @param  string $data 要解密的信息
+     * @return string       解密完成的
+     */
     protected function decrypt($data){
         return $data;
     }
     
+    /**
+     * 错误码反馈
+     * @param  mixed $res 错误码或微信返回错误提示的Json
+     * @return bool      错误码是否错误,错误返回false
+     */
     protected function errorCode($res){
         if(!is_array($res)){
             $res = json_decode($res,true);
@@ -82,15 +102,28 @@ class Wechat{
         return false;
     }
     
+    /**
+     * 获取上一条错误信息
+     * @return string
+     */
     public function getError(){
         return $this->errorMsg;
     }
     
+    /**
+     * 微信配置服务器的验证服务器
+     * @return string 
+     */
     public static function openServer(){
         echo $_GET['echostr'];
         return $_GET['echostr'];
     }
     
+    /**
+     * 获取access_token
+     * @param  boolean $raw 是否返回原始数据
+     * @return array       返回access_token和有效期
+     */
     public function getAccessToken($raw=false){
         $res=$this->http('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.$this->config['appid'].'&secret='.$this->config['appsecret']);
         if(!$res){
@@ -108,6 +141,12 @@ class Wechat{
         return $data;
     }
     
+    /**
+     * 获取微信服务器IP
+     * @param  string  $access_token accesstoken
+     * @param  boolean $raw          是否返回原始数据
+     * @return array                服务器IP和端口列表
+     */
     public function getWechatServer($access_token,$raw=false){
         $res = $this->http('https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token='.$access_token);
         if(!$res){
@@ -127,6 +166,13 @@ class Wechat{
         
     }
     
+    /**
+     * 自定义菜单创建
+     * @param  string  $access_token access_token
+     * @param  array  $data         结构字段
+     * @param  boolean $raw          是否返回原始数据
+     * @return boolean                成功返回true
+     */
     public function menuCreate($access_token,$data,$raw=false){
         $res = $this->http('https://api.weixin.qq.com/cgi-bin/menu/create?access_token='.$access_token,$data,true);
         if(!$res){
@@ -144,6 +190,12 @@ class Wechat{
         }
     }
     
+    /**
+     * 自定义菜单查询
+     * @param  string  $access_token access_token
+     * @param  boolean $raw          是否返回原始数据
+     * @return array                结构字段
+     */
     public function menuQuery($access_token,$raw=false){
         $res = $this->http('https://api.weixin.qq.com/cgi-bin/menu/get?access_token='.$access_token);
         if(!$res){
@@ -161,6 +213,12 @@ class Wechat{
         return $data;
     }
     
+    /**
+     * 自定义菜单删除
+     * @param  string  $access_token access_token
+     * @param  boolean $raw          是否返回原始数据
+     * @return boolean                成功返回true
+     */
     public function menuDelete($access_token,$raw=false){
         $res = $this->http('https://api.weixin.qq.com/cgi-bin/menu/delete?access_token='.$access_token);
         if(!$res){

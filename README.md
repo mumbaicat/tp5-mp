@@ -22,3 +22,12 @@ application // 示例Demo
 </pre>
 
 ## 使用方法
+
+## 进度
+ * [√]获取access_token (getAccessToken)
+ * [√]获取微信服务器(getWechatServer)
+ * [√]自定义菜单创建(menuCreate)
+ * [√]自定义菜单查询(menuQuery)
+ * [√]自定义菜单删除(menuDelete)
+ * 自定义菜单推送
+ * .....
