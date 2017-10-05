@@ -12,6 +12,32 @@ class Wechat{
         $this->config['appid']=config('wechat.appid');
         $this->config['appsecret']=config('wechat.appsecret');
     }
+
+    public static function getRawData(){
+        return file_get_contents('php://input');;
+    }
+    
+    public static function xmlToArray($xml){
+    	libxml_disable_entity_loader(true); 
+    	$xmlstring = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA); 
+    	$value = json_decode(json_encode($xmlstring),true);  // json_encode JSON_UNESCAPED_UNICODE
+    	return $value;
+    }
+    
+    public static function stringCenter($str, $leftStr, $rightStr) {
+		$left = strpos($str, $leftStr);
+		$right = strpos($str, $rightStr, $left);
+		if ($left < 0 or $right < $left) {
+			return '';
+		}
+		return substr($str, $left + strlen($leftStr), $right - $left - strlen($leftStr));
+	}
+    
+    public static function removeSpace($str) {
+        $qian = array(" ", "　", "\t", "\n", "\r");
+        return str_replace($qian, '', $str);
+    }
+
     
     /**
      * CURL
@@ -167,7 +193,7 @@ class Wechat{
     }
     
     /**
-     * 自定义菜单创建
+     * 自定义菜单创建 生效需等待几分钟
      * @param  string  $access_token access_token
      * @param  array  $data         结构字段
      * @param  boolean $raw          是否返回原始数据
@@ -238,6 +264,177 @@ class Wechat{
     
     public function menuPush($access_token,$raw=false){
         // 懒得弄了
+    }
+    
+    public function menuCreateCharacter($access_token,$data,$raw=false){
+        $res = $this->http('https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token='.$access_token,$data,true);
+        if(!$res){
+            $this->errorMsg = 'CURL超时';
+            return false;
+        }
+        if($raw==true){
+            return $res;
+        }
+        $data = json_decode($res,true);
+        if($this->errorCode($data)){
+            return true; 
+        }else{
+            return false;
+        }
+    }
+    
+    public function menuDeleteCharacter($access_token,$menuid,$raw=false){
+        $data['menuid']=$menuid;
+        $res = $this->http('https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token='.$access_token,$data,true);
+        if(!$res){
+            $this->errorMsg = 'CURL超时';
+            return false;
+        }
+        if($raw==true){
+            return $res;
+        }
+        $data = json_decode($res,true);
+        if($this->errorCode($data)){
+            return true; 
+        }else{
+            return false;
+        }
+    }
+    
+    public function menuTestCharacter($access_token,$user_id,$raw=false){
+        $data['$user_id']=$user_id;
+        $res = $this->http('https://api.weixin.qq.com/cgi-bin/menu/trymatch?access_token='.$access_token,$data,true);
+        if(!$res){
+            $this->errorMsg = 'CURL超时';
+            return false;
+        }
+        if($raw==true){
+            return $res;
+        }
+        $data = json_decode($res,true);
+        if(!empty($data['errcode'])){
+            $this->errorCode($data);
+            return false;
+        }
+        return $data;
+    }
+    
+    public function menuQueryFull($access_token,$raw=false){
+        $res = $this->http('https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token='.$access_token);
+        if(!$res){
+            $this->errorMsg = 'CURL超时';
+            return false;
+        }
+        if($raw==true){
+            return $res;
+        }
+        $data = json_decode($res,true);
+        if(!empty($data['errcode'])){
+            $this->errorCode($data);
+            return false;
+        }
+        return $data;
+    }
+    
+    public static function makeTextXml($xmlData,$text){
+        $respone = '<xml>
+        <ToUserName><![CDATA['.$xmlData['FromUserName'].']]></ToUserName>
+        <FromUserName><![CDATA['.$xmlData['ToUserName'].']]></FromUserName>
+        <CreateTime>'.time().'</CreateTime>
+        <MsgType><![CDATA[text]]></MsgType>
+        <Content><![CDATA['.$text.']]></Content>
+        </xml>';
+        return $respone;
+    }
+    
+    public static function makeImageXml($xmlData,$MediaId){
+        $respone = '<xml>
+        <ToUserName><![CDATA['.$xmlData['FromUserName'].']]></ToUserName>
+        <FromUserName><![CDATA['.$xmlData['ToUserName'].']]></FromUserName>
+        <CreateTime>'.time().'</CreateTime>
+        <MsgType><![CDATA[image]]></MsgType>
+        <Image>
+        <MediaId><![CDATA['.$MediaId.']]></MediaId>
+        </Image>
+        </xml>';
+        return $respone;
+    }
+    public static function makeVoiceXml($xmlData,$MediaId){
+        $respone = '<xml>
+        <ToUserName><![CDATA['.$xmlData['FromUserName'].']]></ToUserName>
+        <FromUserName><![CDATA['.$xmlData['ToUserName'].']]></FromUserName>
+        <CreateTime>'.time().'</CreateTime>
+        <MsgType><![CDATA[voice]]></MsgType>
+        <Voice>
+        <MediaId><![CDATA['.$MediaId.']]></MediaId>
+        </Voice>
+        </xml>';
+        return $respone;
+    }
+    public static function makeVideoXml($xmlData,$MediaId,$Title=false,$Description=false){
+        $respone='<xml>
+        <ToUserName><![CDATA['.$xmlData['FromUserName'].']]></ToUserName>
+        <FromUserName><![CDATA['.$xmlData['ToUserName'].']]></FromUserName>
+        <CreateTime>'.time().'</CreateTime>
+        <MsgType><![CDATA[video]]></MsgType>
+        <Video>
+        <MediaId><![CDATA['.$MediaId.']]></MediaId>';
+        if($Title!=false){
+            $respone = $respone.'<Title><![CDATA['.$Title.']]></Title>';
+        }
+        if($Description!=false){
+            $respone = $respone.'<Description><![CDATA['.$Description.']]></Description>';
+        }
+        $respone = $respone.'</Video> 
+        </xml>';
+        return $respone;
+    }
+    public static function makeMusicXml($xmlData,$Title=false,$Description=false,$MusicURL=false,$HQMusicUrl=false,$ThumbMediaId=false){
+        $respone='<xml>
+        <ToUserName><![CDATA['.$xmlData['FromUserName'].']]></ToUserName>
+        <FromUserName><![CDATA['.$xmlData['ToUserName'].']]></FromUserName>
+        <CreateTime>'.time().'</CreateTime>
+        <MsgType><![CDATA[music]]></MsgType>
+        <Music>';
+        if($Title!=false){
+            $respone = $respone.'<Title><![CDATA['.$Title.']]></Title>';
+        }
+        if($Description!=false){
+            $respone = $respone.'<Description><![CDATA['.$Description.']]></Description>';
+        }
+        if($MusicURL!=false){
+            $respone = $respone.'<MusicUrl><![CDATA['.$MusicURL.']]></MusicUrl>';
+        }
+        if($HQMusicUrl!=false){
+            $respone = $respone.'<HQMusicUrl><![CDATA['.$HQMusicUrl.']]></HQMusicUrl>';
+        }
+        if($ThumbMediaId!=false){
+            $respone = $respone.'<ThumbMediaId><![CDATA['.$ThumbMediaId.']]></ThumbMediaId>';
+        }
+        $respone = $respone.'</Music>
+        </xml>';
+        return $respone;
+    }
+    
+    public static function makeNewsXml($xmlData,$ArticleCount,$News){
+        $respone='<xml>
+        <ToUserName><![CDATA['.$xmlData['FromUserName'].']]></ToUserName>
+        <FromUserName><![CDATA['.$xmlData['ToUserName'].']]></FromUserName>
+        <CreateTime>'.time().'</CreateTime>
+        <MsgType><![CDATA[news]]></MsgType>
+        <ArticleCount>'.$ArticleCount.'</ArticleCount>
+        <Articles>';
+        foreach ($News as $one) {
+            $respone = $respone.'<item>
+            <Title><![CDATA['.$one['title'].']]></Title> 
+            <Description><![CDATA['.$one['description'].']]></Description>
+            <PicUrl><![CDATA['.$one['picurl'].']]></PicUrl>
+            <Url><![CDATA['.$one['url'].']]></Url>
+            </item>';
+        }
+        $respone = $respone.'</Articles>
+        </xml>';
+        return $respone;
     }
     
 }
