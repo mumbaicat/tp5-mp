@@ -556,7 +556,14 @@ class Wechat {
 		return $respone;
 	}
 	
-    // 行业编号:https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277
+	/**
+	 * 设置模板行业 编号参考:https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277
+	 * @param  string  $access_token access_token
+	 * @param  string  $industry_id1 行业1编号
+	 * @param  string  $industry_id2 行业2编号
+	 * @param  boolean $raw          是否返回原始数据
+	 * @return Boolean                成功返回true
+	 */
 	public function templateSet($access_token,$industry_id1,$industry_id2,$raw=false){
 	    $data = [
 	        'industry_id1'=>$industry_id1,
@@ -578,6 +585,12 @@ class Wechat {
 		}
 	}
 	
+	/**
+	 * 获取已设置的行业信息
+	 * @param  string  $access_token access_token
+	 * @param  boolean $raw          是否返回原始数据
+	 * @return array           
+	 */
 	public function templateGetset($access_token,$raw=false){
 	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/get_industry?access_token='.$access_token);
 	    if (!$res) {
@@ -595,6 +608,13 @@ class Wechat {
 		return $data;
 	}
 	
+	/**
+	 * 获取模板ID
+	 * @param  string  $access_token      access_token
+	 * @param  string  $template_id_short 模板库中模板的编号
+	 * @param  boolean $raw               是否返回原始数据
+	 * @return string                     模板ID
+	 */
 	public function templateGetId($access_token,$template_id_short,$raw=false){
 	    $data = [
 	        'template_id_short'=>$template_id_short,
@@ -611,9 +631,15 @@ class Wechat {
 		if (!$this->errorCode($data)) {
 			return false;
 		}
-		return $data;
+		return $data['template_id'];
 	}
 	
+	/**
+	 * 获取已添加的模板列表
+	 * @param  string  $access_token access_token
+	 * @param  boolean $raw          是否返回原始数据
+	 * @return array
+	 */
 	public function templateGetList($access_token,$raw=false){
 	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token='.$access_token);
 	    if (!$res) {
@@ -630,6 +656,12 @@ class Wechat {
 		return $data;
 	}
 	
+	/**
+	 * 删除已添加的模板
+	 * @param  string $access_token access_token
+	 * @param  string $template_id  模板ID
+	 * @return Boolean               成功返回true
+	 */
 	public function templateDelete($access_token,$template_id){
 	    $data = [
 	        'template_id'=>$template_id,
@@ -650,8 +682,17 @@ class Wechat {
 		}
 	}
 	
-	// 小程序数组['appid'=>'appid','pagepath'=>"index?foo=bar"]
-	// $data ['first'=>['value'=>'名称','color'=>'#173177']]
+	/**
+	 * 发送模板 (URL和小程序都填写优先打开小程序)
+	 * @param  string  $access_token access_token
+	 * @param  string  $openid       用户的OpenID
+	 * @param  string  $template_id  模板编号
+	 * @param  array  $data         发送数据的数组  ['first'=>['value'=>'名称','color'=>'#173177']]
+	 * @param  boolean $url          点击跳转的URL,默认不填写
+	 * @param  array $miniprogram  点击跳转的小程序,默认不填写 ['appid'=>'appid','pagepath'=>"index?foo=bar"]
+	 * @param  boolean $raw          是否返回原始数据
+	 * @return boolean                发送成功返回true
+	 */
 	public function templateSend($access_token,$openid,$template_id,$data,$url=false,$miniprogram=false,$raw=false){
 	    $postData = [
 	        'touser'=> $openid,
