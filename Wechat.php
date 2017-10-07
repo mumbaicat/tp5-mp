@@ -54,7 +54,7 @@ class Wechat {
 	 * @param  string $right  根据字符的右边
 	 * @return string         得到左边的字符串
 	 */
-	function stringLeft($string,$right){
+	public function stringLeft($string,$right){
 		$reg = '/(.*)'.$right.'.*/';
 		preg_match($reg,$string,$data);
 		if(empty($data[1])){
@@ -69,7 +69,7 @@ class Wechat {
 	 * @param  string $left   根据字符串左边
 	 * @return string         得到右边的字符串
 	 */
-	function stringRight($string,$left){
+	public function stringRight($string,$left){
 		$leftLength = strlen($left);
 		$index = strpos($string,$left);
 		if($index == -1){
@@ -554,6 +554,130 @@ class Wechat {
 		$respone = $respone . '</Articles>
         </xml>';
 		return $respone;
+	}
+	
+    // 行业编号:https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277
+	public function templateSet($access_token,$industry_id1,$industry_id2,$raw=false){
+	    $data = [
+	        'industry_id1'=>$industry_id1,
+	        'industry_id2'=>$industry_id2
+	    ];
+	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_set_industry?access_token='.$access_token,$data,true);
+	    if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function templateGetset($access_token,$raw=false){
+	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/get_industry?access_token='.$access_token);
+	    if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if (!$this->errorCode($data)) {
+			$this->errorCode($data);
+			return false;
+		}
+		return $data;
+	}
+	
+	public function templateGetId($access_token,$template_id_short,$raw=false){
+	    $data = [
+	        'template_id_short'=>$template_id_short,
+	    ];
+	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token='.$access_token,$data,true);
+	    if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if (!$this->errorCode($data)) {
+			return false;
+		}
+		return $data;
+	}
+	
+	public function templateGetList($access_token,$raw=false){
+	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token='.$access_token);
+	    if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if (!$this->errorCode($data)) {
+			return false;
+		}
+		return $data;
+	}
+	
+	public function templateDelete($access_token,$template_id){
+	    $data = [
+	        'template_id'=>$template_id,
+	    ];
+	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/del_private_template?access_token='.$access_token,$data,true);
+	    if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	// 小程序数组['appid'=>'appid','pagepath'=>"index?foo=bar"]
+	// $data ['first'=>['value'=>'名称','color'=>'#173177']]
+	public function templateSend($access_token,$openid,$template_id,$data,$url=false,$miniprogram=false,$raw=false){
+	    $postData = [
+	        'touser'=> $openid,
+	        'template_id'=>$template_id
+	    ];
+	    if($url!=false){
+	        $postData['url']=$url;
+	    }
+	    if($miniprogram!=false){
+	        $postData['miniprogram']=$miniprogram;
+	    }
+	    $postData['data']=$data;
+	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/message/template/send?access_token='.$access_token,$postData,true);
+	    if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }

@@ -66,5 +66,13 @@ application // 示例Demo
  *  * 时间推送群发结果
  *  * 检测重复推送
  *  * 控制群发速度
- * 
+ * [√]模板消息 [参数参考](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277)
+ *  * [√]设置所属行业(templateSet)
+ *  * [√]获取设置的行业信息(templateGetset)
+ *  * [√]获得模板ID(templateGetId)
+ *  * [√]获取模板列表(templateGetList)
+ *  * [√]删除模板(templateDelete)
+ *  * [√]发送模板消息(templateSend)
+ *  * [√]事件推送 [参数参考](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277)
+ * (有空把事件整合在一个里面)
  * .....
