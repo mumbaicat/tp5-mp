@@ -55,17 +55,16 @@ application // 示例Demo
  *  * 获取所有客服列表
  *  * 发送客服消息
  *  * 发送输入状态
- * 群发接口
- *  * 上传图文消息内的图片获取URL
- *  * 上传图文消息素材
- *  * 根据标签进群发
- *  * 根据OpenID列表群发
- *  * 删除群发
- *  * 预览接口
- *  * 查询群发消息发送状态
- *  * 时间推送群发结果
- *  * 检测重复推送
- *  * 控制群发速度
+ * 群发接口 [参数参考](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1481187827_i0l21)
+ *  * [√]上传图文消息内的图片获取URL(uploadImage)
+ *  * [√]上传图文消息素材(uploadNews)
+ *  * [√]根据标签进群发(send)
+ *  * [√]根据OpenID列表群发(send)
+ *  * [√]删除群发(sendDelete)
+ *  * [√]预览接口(send)
+ *  * [√]查询群发消息发送状态(getSendStatus)
+ *  * [√]事件推送群发结果
+ *  * [√]控制群发速度(setSendSpeed)
  * [√]模板消息 [参数参考](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277)
  *  * [√]设置所属行业(templateSet)
  *  * [√]获取设置的行业信息(templateGetset)
