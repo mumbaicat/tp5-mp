@@ -54,10 +54,10 @@ class Wechat {
 	 * @param  string $right  根据字符的右边
 	 * @return string         得到左边的字符串
 	 */
-	public function stringLeft($string,$right){
-		$reg = '/(.*)'.$right.'.*/';
-		preg_match($reg,$string,$data);
-		if(empty($data[1])){
+	public function stringLeft($string, $right) {
+		$reg = '/(.*)' . $right . '.*/';
+		preg_match($reg, $string, $data);
+		if (empty($data[1])) {
 			return false;
 		}
 		return $data[1];
@@ -69,16 +69,16 @@ class Wechat {
 	 * @param  string $left   根据字符串左边
 	 * @return string         得到右边的字符串
 	 */
-	public function stringRight($string,$left){
+	public function stringRight($string, $left) {
 		$leftLength = strlen($left);
-		$index = strpos($string,$left);
-		if($index == -1){
+		$index = strpos($string, $left);
+		if ($index == -1) {
 			return false;
 		}
-		$result = substr($string, $index+$leftLength); 
+		$result = substr($string, $index + $leftLength);
 		return $result;
 	}
-	
+
 	/**
 	 * 去掉空格和换行
 	 * @param  string $str 要处理的字符串
@@ -147,8 +147,8 @@ class Wechat {
 		if (!is_array($res)) {
 			$res = json_decode($res, true);
 		}
-		if(empty($res['errcode'])){
-		    return true;
+		if (empty($res['errcode'])) {
+			return true;
 		}
 		switch ($res['errcode']) {
 		case '0':
@@ -558,171 +558,116 @@ class Wechat {
         </xml>';
 		return $respone;
 	}
-	
-	public function uploadImage($access_token,$file,$raw=false){
-	    $data = [
-	        'file'=>'@'.$file,
-	    ];
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token='.$access_token,$data);
-	    if (!$res) {
+
+	public function uploadImage($access_token, $file, $raw = false) {
+		$data = [
+			'file' => '@' . $file,
+		];
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=' . $access_token, $data);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
 		if ($raw == true) {
 			return $res;
 		}
-	    $data = json_decode($res,true);
-	    if ($this->errorCode($data)) {
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
 			return $data['url'];
 		} else {
 			return false;
 		}
 	}
-	
+
 	// https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1481187827_i0l21
-	// $news 数组['thumb_media_id'=>'..',...] 
-	public function uploadNews($access_token,$news,$raw=false){
-	    $postData = [
-	        'articles'=>$news,
-	    ];
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/media/uploadnews?access_token='.$access_token,$postData,true);
-	    if (!$res) {
+	// $news 数组['thumb_media_id'=>'..',...]
+	public function uploadNews($access_token, $news, $raw = false) {
+		$postData = [
+			'articles' => $news,
+		];
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/media/uploadnews?access_token=' . $access_token, $postData, true);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
 		if ($raw == true) {
 			return $res;
 		}
-		$data = json_decode($res,true);
-		if($this->errorCode($data)){
-		    return $data;
-		}else{
-		    return false;
-		}
-	}
-	
-	// 根据标签进行群发 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1481187827_i0l21
-	// $tag 填写数字则为按这个标签ID的人群发送;若填写为openid数组,则按照openid发送;如果是'preview'则为预览发送,每天默认100次;默认全部发送
-	// 当 send_ignore_reprint 参数设置为1时，文章被判定为转载时，且原创文允许转载时，将继续进行群发操作。
-	// 当 send_ignore_reprint 参数设置为0时，文章被判定为转载时，将停止群发操作。
-	public function send($access_token,$msgType,$data,$tag=false,$send_ignore_reprint=0,$raw=false){
-	    $postData = [];
-	    if($tag=='preview'){
-	        $postData['touser']=$tag;
-	        $url = 'https://api.weixin.qq.com/cgi-bin/message/mass/preview?access_token=';
-	    }elseif(is_array($tag)){
-	        // 按openid发
-	        $postData['touser']=$tag;
-	        $url = 'https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=';
-	    }elseif(!is_array($tag)){
-	        // 按标签编号发
-	        $postData['filter']=[
-	            'is_to_all'=>false,
-	            'tag_id'=>$tag,
-	        ];
-	        $url = 'https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token=';
-	    }else{
-	        // 群发
-	        $postData['filter']=[
-	            'is_to_all'=>true,
-	        ];
-	        $url = 'https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token=';
-	    }
-	    $postData[$msgType]=$data;
-	    $postData['msgtype']=$msgType;
-	    $postData['send_ignore_reprint']=$send_ignore_reprint;
-	    $res = $this->http($url.$access_token,$postData,true);
-	    if (!$res) {
-			$this->errorMsg = 'CURL超时';
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return $data;
+		} else {
 			return false;
 		}
-		if ($raw == true) {
-			return $res;
-		}
-		$data = json_decode($res,true);
-		if($this->errorCode($data)){
-		    return $data;
-		}else{
-		    return false;
-		}
 	}
-	
-	// $article_idx 要删除的文章在图文消息中的位置，第一篇编号为1，该字段不填或填0会删除全部文章
-	public function sendDelete($access_token,$msg_id,$article_idx=0,$raw=false){
-	    $postData = [
-	        'msg_id'=>$msg_id,
-	        'article_idx'=>$article_idx,
-	    ];
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/message/mass/delete?access_token='.$access_token,$postData,true);
-	    if (!$res) {
-			$this->errorMsg = 'CURL超时';
-			return false;
-		}
-		if ($raw == true) {
-			return $res;
-		}
-		$data = json_decode($res,true);
-		if($this->errorCode($data)){
-		    return true;
-		}else{
-		    return false;
-		}
-	}
-	
-	// 消息发送后的状态，SEND_SUCCESS表示发送成功，SENDING表示发送中，SEND_FAIL表示发送失败，DELETE表示已删除
-	public function getSendStatus($access_token,$msg_id,$raw=false){
-	    $postData['msg_id']=$msg_id;
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/message/mass/get?access_token='.$access_token,$postData,true);
-	    if (!$res) {
-			$this->errorMsg = 'CURL超时';
-			return false;
-		}
-		if ($raw == true) {
-			return $res;
-		}
-		$data = json_decode($res,true);
-		if($this->errorCode($data)){
-		    return $data['msg_status'];
-		}else{
-		    return false;
-		}
-	}
-	
-    // 	0:80w/分钟 1:60w/分钟 2:45w/分钟 3:30w/分钟 4:10w/分钟
-	public function setSendSpeed($access_token,$msg_id,$speed){
-	    $postData['speed'] = $speed;
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/message/mass/speed/set?access_token='.$access_token,$postData,true);
-	    if (!$res) {
-			$this->errorMsg = 'CURL超时';
-			return false;
-		}
-		if ($raw == true) {
-			return $res;
-		}
-		$data = json_decode($res,true);
-		if($this->errorCode($data)){
-		    return true;
-		}else{
-		    return false;
-		}
-	}
-	
-	
+
 	/**
-	 * 设置模板行业 编号参考:https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277
+	 * 群发消息 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1481187827_i0l21
+	 * @param  string  $access_token        access_token
+	 * @param  string  $msgType             发送类型 可以参考上方链接
+	 * @param  mixed  $data                发送数据  可以参考上方链接
+	 * @param  mixed $tag                 填写数字则为按这个标签ID的人群发送;若填写为openid数组,则按照openid发送;如果是'preview'则为预览发送,每天默认100次;默认全部发送
+	 * @param  integer $send_ignore_reprint 原创验证,设置为1时，文章被判定为转载时，且原创文允许转载时，将继续进行群发操作;设置为0时，文章被判定为转载时，将停止群发操作;默认为0.
+	 * @param  boolean $raw                 是否返回原始数据
+	 * @return array                       返回结果,比如说msg_id
+	 */
+	public function send($access_token, $msgType, $data, $tag = false, $send_ignore_reprint = 0, $raw = false) {
+		$postData = [];
+		if ($tag == 'preview') {
+			$postData['touser'] = $tag;
+			$url = 'https://api.weixin.qq.com/cgi-bin/message/mass/preview?access_token=';
+		} elseif (is_array($tag)) {
+			// 按openid发
+			$postData['touser'] = $tag;
+			$url = 'https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=';
+		} elseif (!is_array($tag)) {
+			// 按标签编号发
+			$postData['filter'] = [
+				'is_to_all' => false,
+				'tag_id' => $tag,
+			];
+			$url = 'https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token=';
+		} else {
+			// 群发
+			$postData['filter'] = [
+				'is_to_all' => true,
+			];
+			$url = 'https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token=';
+		}
+		$postData[$msgType] = $data;
+		$postData['msgtype'] = $msgType;
+		$postData['send_ignore_reprint'] = $send_ignore_reprint;
+		$res = $this->http($url . $access_token, $postData, true);
+		if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return $data;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 删除群发
 	 * @param  string  $access_token access_token
-	 * @param  string  $industry_id1 行业1编号
-	 * @param  string  $industry_id2 行业2编号
+	 * @param  string  $msg_id       消息ID
+	 * @param  integer $article_idx  要删除的文章在图文消息中的位置，第一篇编号为1，默认为0则删除全部
 	 * @param  boolean $raw          是否返回原始数据
 	 * @return Boolean                成功返回true
 	 */
-	public function templateSet($access_token,$industry_id1,$industry_id2,$raw=false){
-	    $data = [
-	        'industry_id1'=>$industry_id1,
-	        'industry_id2'=>$industry_id2
-	    ];
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_set_industry?access_token='.$access_token,$data,true);
-	    if (!$res) {
+	public function sendDelete($access_token, $msg_id, $article_idx = 0, $raw = false) {
+		$postData = [
+			'msg_id' => $msg_id,
+			'article_idx' => $article_idx,
+		];
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/message/mass/delete?access_token=' . $access_token, $postData, true);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
@@ -736,16 +681,95 @@ class Wechat {
 			return false;
 		}
 	}
-	
+
+	/**
+	 * 获取群发状态
+	 * @param  string  $access_token access_token
+	 * @param  string  $msg_id       消息ID
+	 * @param  boolean $raw          是否返回原始数据
+	 * @return string                SEND_SUCCESS表示发送成功，SENDING表示发送中，SEND_FAIL表示发送失败，DELETE表示已删除
+	 */
+	public function getSendStatus($access_token, $msg_id, $raw = false) {
+		$postData['msg_id'] = $msg_id;
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/message/mass/get?access_token=' . $access_token, $postData, true);
+		if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return $data['msg_status'];
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 设置群发速度
+	 * @param string $access_token access_token
+	 * @param string $msg_id       消息ID
+	 * @param integer $speed        速度  0:80w/分钟 1:60w/分钟 2:45w/分钟 3:30w/分钟 4:10w/分钟
+	 * @param  boolean $raw          是否返回原始数据
+	 */
+	public function setSendSpeed($access_token, $msg_id, $speed, $raw = false) {
+		$postData['speed'] = $speed;
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/message/mass/speed/set?access_token=' . $access_token, $postData, true);
+		if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 设置模板行业 编号参考:https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277
+	 * @param  string  $access_token access_token
+	 * @param  string  $industry_id1 行业1编号
+	 * @param  string  $industry_id2 行业2编号
+	 * @param  boolean $raw          是否返回原始数据
+	 * @return Boolean                成功返回true
+	 */
+	public function templateSet($access_token, $industry_id1, $industry_id2, $raw = false) {
+		$data = [
+			'industry_id1' => $industry_id1,
+			'industry_id2' => $industry_id2,
+		];
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_set_industry?access_token=' . $access_token, $data, true);
+		if (!$res) {
+			$this->errorMsg = 'CURL超时';
+			return false;
+		}
+		if ($raw == true) {
+			return $res;
+		}
+		$data = json_decode($res, true);
+		if ($this->errorCode($data)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * 获取已设置的行业信息
 	 * @param  string  $access_token access_token
 	 * @param  boolean $raw          是否返回原始数据
-	 * @return array           
+	 * @return array
 	 */
-	public function templateGetset($access_token,$raw=false){
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/get_industry?access_token='.$access_token);
-	    if (!$res) {
+	public function templateGetset($access_token, $raw = false) {
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/template/get_industry?access_token=' . $access_token);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
@@ -759,7 +783,7 @@ class Wechat {
 		}
 		return $data;
 	}
-	
+
 	/**
 	 * 获取模板ID
 	 * @param  string  $access_token      access_token
@@ -767,12 +791,12 @@ class Wechat {
 	 * @param  boolean $raw               是否返回原始数据
 	 * @return string                     模板ID
 	 */
-	public function templateGetId($access_token,$template_id_short,$raw=false){
-	    $data = [
-	        'template_id_short'=>$template_id_short,
-	    ];
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token='.$access_token,$data,true);
-	    if (!$res) {
+	public function templateGetId($access_token, $template_id_short, $raw = false) {
+		$data = [
+			'template_id_short' => $template_id_short,
+		];
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token=' . $access_token, $data, true);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
@@ -785,16 +809,16 @@ class Wechat {
 		}
 		return $data['template_id'];
 	}
-	
+
 	/**
 	 * 获取已添加的模板列表
 	 * @param  string  $access_token access_token
 	 * @param  boolean $raw          是否返回原始数据
 	 * @return array
 	 */
-	public function templateGetList($access_token,$raw=false){
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token='.$access_token);
-	    if (!$res) {
+	public function templateGetList($access_token, $raw = false) {
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token=' . $access_token);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
@@ -807,19 +831,19 @@ class Wechat {
 		}
 		return $data;
 	}
-	
+
 	/**
 	 * 删除已添加的模板
 	 * @param  string $access_token access_token
 	 * @param  string $template_id  模板ID
 	 * @return Boolean               成功返回true
 	 */
-	public function templateDelete($access_token,$template_id){
-	    $data = [
-	        'template_id'=>$template_id,
-	    ];
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/template/del_private_template?access_token='.$access_token,$data,true);
-	    if (!$res) {
+	public function templateDelete($access_token, $template_id) {
+		$data = [
+			'template_id' => $template_id,
+		];
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/template/del_private_template?access_token=' . $access_token, $data, true);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
@@ -833,7 +857,7 @@ class Wechat {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 发送模板 (URL和小程序都填写优先打开小程序)
 	 * @param  string  $access_token access_token
@@ -845,20 +869,20 @@ class Wechat {
 	 * @param  boolean $raw          是否返回原始数据
 	 * @return boolean                发送成功返回true
 	 */
-	public function templateSend($access_token,$openid,$template_id,$data,$url=false,$miniprogram=false,$raw=false){
-	    $postData = [
-	        'touser'=> $openid,
-	        'template_id'=>$template_id
-	    ];
-	    if($url!=false){
-	        $postData['url']=$url;
-	    }
-	    if($miniprogram!=false){
-	        $postData['miniprogram']=$miniprogram;
-	    }
-	    $postData['data']=$data;
-	    $res = $this->http('https://api.weixin.qq.com/cgi-bin/message/template/send?access_token='.$access_token,$postData,true);
-	    if (!$res) {
+	public function templateSend($access_token, $openid, $template_id, $data, $url = false, $miniprogram = false, $raw = false) {
+		$postData = [
+			'touser' => $openid,
+			'template_id' => $template_id,
+		];
+		if ($url != false) {
+			$postData['url'] = $url;
+		}
+		if ($miniprogram != false) {
+			$postData['miniprogram'] = $miniprogram;
+		}
+		$postData['data'] = $data;
+		$res = $this->http('https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=' . $access_token, $postData, true);
+		if (!$res) {
 			$this->errorMsg = 'CURL超时';
 			return false;
 		}
